@@ -30,7 +30,7 @@ solveRow row n = do
         else result
 
 main = do
-    f   <- readFile "nonogram.txt"
+    f   <- readFile "nonogram2.txt"
     let list = lines f
     let size = (map read (words (list!!0))) :: [Int]  -- tablica zawierająca wartości x i y size[0] to x itd..
     let colValues = (map words (slice 1 (size!!0) list))-- tablica [kolumna][clue], np. mamy w kolumnie 2 clue numer 3, czyli bierzemy colValues[1][2] (bo indeksy od 0)
@@ -41,14 +41,20 @@ main = do
     let poppedq = [[1],[1],[2],[2]]
     let testrows = [["6","1","1"],["5","2","1"]]
     print (collectHeads columnTest)
-    
+
     print rowValues
     print colValues
+    let fromRows = doAllRows rowValues (size!!0)
+    let fromColumns = doAllRows colValues (size!!1)
 
-
+    let rowsfromColumns = collectHeads fromColumns
     -- print (doAllRows testrows (11))
-    print (doAllRows rowValues (size!!0))
+    print (fromRows)
 
+    print (fromColumns)
+
+    -- print (mergeCells fromRows rowsfromColumns)
+    
     --let row = solveRow [5, 2, 1] 11
 
     --mapM_ print row 
@@ -89,3 +95,14 @@ collectHeads [[]] = []
 collectHeads (x:xs) = 
     if x == [] then collectHeads (popAllFirst (xs))
     else listFromHeads (x:xs) : collectHeads (popAllFirst (x:xs))
+
+overwriteMoreImportantValue :: (Int,Int) -> Int
+overwriteMoreImportantValue (x, y)= 
+    if x == -1 then y
+    else
+    if y == -1 then x
+    else x
+mergeCells :: [[Int]] -> [[Int]] -> [[Int]]
+mergeCells x y = map (\elemxy -> overwriteMoreImportantValue elemxy) (zip (x y))
+
+-- mergeMetadata :: [[Int]] -> [[Int]] -> [[(Int,Int)]]
