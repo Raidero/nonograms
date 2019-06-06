@@ -24,7 +24,10 @@ solveRow [] n = emptyArray n
 solveRow row n = do
     let cluesWithSpaces = sum row + length row - 1
     let diff = n - cluesWithSpaces
-    concat (map (\x -> prepareRowPart x diff) row) ++ emptyArray (diff - 1) 
+    let result = concat (map (\x -> prepareRowPart x diff) row) ++ emptyArray (diff - 1) 
+    if diff == 0 
+        then init result
+        else result
 
 main = do
     f   <- readFile "nonogram.txt"
