@@ -1,10 +1,30 @@
-spell d = putStrLn d
+
 
 convert :: [String] -> [Int]
 convert = map read
 data Puzzle = Puzzle {rows :: [[Int]], columns :: [[Int]]} deriving Show
 
 slice start end = take (end - start + 1) . drop start
+
+spacesArray :: Int -> [Int]
+spacesArray n = take n (repeat 0)
+boxArray :: Int -> [Int]
+boxArray n = take n (repeat 1)
+emptyArray :: Int -> [Int]
+emptyArray n = take n (repeat (-1))
+
+prepareRowPart  :: Int -> Int -> [Int]
+prepareRowPart clue diff = do
+    if clue > diff
+        then (emptyArray diff) ++ (boxArray (clue - diff)) ++ (emptyArray 1)
+        else emptyArray (clue + 1)
+
+solveRow :: [Int] -> Int -> [Int]  
+solveRow [] n = emptyArray n 
+solveRow row n = do
+    let cluesWithSpaces = sum row + length row - 1
+    let diff = n - cluesWithSpaces
+    concat (map (\x -> prepareRowPart x diff) row) ++ emptyArray (diff - 1) 
 
 main = do
     f   <- readFile "nonogram.txt"
@@ -26,11 +46,14 @@ main = do
     print (collectHeads columnTest)
     doAllRows rowValues
 
-solveRow :: [Int] -> [Int]
-solveRow row = row
+    --let row = solveRow [5, 2, 1] 11
+
+    --mapM_ print row 
+    --spell (rowValues!!3!!0)
+    
 
 
-doAllRows :: [[String]] -> IO()
+doAllRows :: [[String]] -> [[Int]]
 doAllRows [] = print ("koniec")
 doAllRows (x:xs) = do
     let solvedRow = solveRow (convert x)
