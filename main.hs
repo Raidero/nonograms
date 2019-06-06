@@ -32,19 +32,19 @@ main = do
     let size = (map read (words (list!!0))) :: [Int]  -- tablica zawierająca wartości x i y size[0] to x itd..
     let colValues = (map words (slice 1 (size!!0) list))-- tablica [kolumna][clue], np. mamy w kolumnie 2 clue numer 3, czyli bierzemy colValues[1][2] (bo indeksy od 0)
     let rowValues = (map words (slice (size!!0 + 1) (size!!0 + size!!1) list))
-    print (rowValues!!3!!0)
+  
     let columnTest =  [[1,0],[2,3]]
     let poppedAll = [[]]
     let poppedq = [[1],[1],[2],[2]]
-    print (listFromHeads columnTest)
-    print (listFromHeads poppedq)
-    print (listFromHeads poppedAll)
-    print (popFirst (columnTest!!0))
-    print (popAllFirst columnTest)
-    print (popAllFirst columnTest)
-    print (popAllFirst poppedAll)
+    let testrows = [["6","1","1"],["5","2","1"]]
     print (collectHeads columnTest)
-    doAllRows rowValues
+    
+    print rowValues
+    print colValues
+
+
+    -- print (doAllRows testrows (11))
+    print (doAllRows rowValues (size!!0))
 
     --let row = solveRow [5, 2, 1] 11
 
@@ -53,12 +53,12 @@ main = do
     
 
 
-doAllRows :: [[String]] -> [[Int]]
-doAllRows [] = print ("koniec")
-doAllRows (x:xs) = do
-    let solvedRow = solveRow (convert x)
-    print solvedRow
-    doAllRows xs
+doAllRows :: [[String]] -> Int -> [[Int]]
+doAllRows x k = 
+    map (\elem -> solveRow (convert elem) k) x 
+    
+
+
 
 popFirst :: [Int] -> [Int]
 popFirst [] = []
@@ -84,5 +84,5 @@ collectHeads :: [[Int]] -> [[Int]]
 collectHeads [] = []
 collectHeads [[]] = []
 collectHeads (x:xs) = 
-    if x == [] then listFromHeads (xs) : collectHeads (popAllFirst (xs))
+    if x == [] then collectHeads (popAllFirst (xs))
     else listFromHeads (x:xs) : collectHeads (popAllFirst (x:xs))
