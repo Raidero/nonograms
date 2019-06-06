@@ -25,7 +25,7 @@ main = do
     print (popAllFirst poppedAll)
     print (collectHeads columnTest)
     doAllRows rowValues
-    
+
 solveRow :: [Int] -> [Int]
 solveRow row = row
 
