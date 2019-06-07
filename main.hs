@@ -1,4 +1,6 @@
 import System.Console.ANSI 
+import Data.List
+import Data.List (elemIndex)
 
 ------DRAWING-----------------------------------------------
 
@@ -76,9 +78,17 @@ doAllRows x k =
 -----------------SIMPLE SPACES----UNDERCONSTRUCTION--------------------------------------------
 
 ---[FilledRow/Column] -> [CluesforThatRow/Column]
-simpleSpaces:: [Int] -> [Int] -> [Int]
-simpleSpaces (x:xs) (y:ys:yss) =  simpleSpaces (drop' (y+1) xs) (ys:yss)
+-- simpleSpaces:: [Int] -> [Int] -> [Int]
+-- simpleSpaces (x:xs) (y:ys) = 
+--     if (elem 0 (take y (x:xs))) then x : simpleSpaces xs (y:ys)
+--     else
+--         if (elem 1 (take y (x:xs))) then if isFittable 
+--     simpleSpaces (drop' (y+1) xs) (ys)
 
+
+-- generateAllPossibilities :: [Int] -> [Int] ->[[Int]]
+-- generateAllPossibilities (x:xs) (y:ys) = 
+    
 
 -----------------SIMPLE SPACES^^^^^^^^^^^^^^---------------------------------------
 
@@ -100,6 +110,7 @@ main = do
     let rowsfromColumns = collectHeads fromColumns
     let zipped = zipMany fromRows rowsfromColumns
 
+
     ---------------TESTING--------------------------------------------------------
 
     drawPuzzle zipped
@@ -113,7 +124,10 @@ main = do
     print ("fromColumns", fromColumns)
     print ( "rowsFromColumns", rowsfromColumns)
     print ("zippedTogether", zipped)
-    
+    print (extraSpace [3,2,1])
+    print (drop' ((position 1 [0,0,0,1,0,1,0])+1) [0,0,0,1,0,1,0])
+    print (take 5 [0,0,0,0,0,0])
+    print (isFittable [1,0] [2])
     --let row = solveRow [5, 2, 1] 11
 
     --mapM_ print row 
@@ -121,13 +135,41 @@ main = do
     
     -- print (map (\elemxy -> overwriteMoreImportantValue elemxy) (zip ))
 
-
+    --print (isFittable [-1,-1,-1,-1,-1,-1,-1,-1] [5,3])
 ----------------------SUPORTIVE FUNCTIONS----------------------------------------------
 
 ---------TODO----
 ---------- Function that computes extra space needed for list of clues would be handfull (take the color into account)
 ---------- Simple spaces algorithm
 --------------
+extraSpace :: [Int] -> Int
+extraSpace [x] = x
+extraSpace (x:xs) = x + 1 + extraSpace xs
+
+isFittable ::  [Int] -> [Int] -> Bool
+isFittable [] [] = True
+isFittable [] (y:ys) = False
+isFittable [x] [y] = if x==0 || y>1 then False else True
+isFittable [x] (y:ys) = if x==0 || y>1 then False else True
+isFittable (x:xs) [] = if elem 1 (x:xs) then False else True
+isFittable (x:xs) (y:ys) =
+    if (length (x:xs) < y) then False else
+        if (length (x:xs) == y && not(elem 0 (x:xs))) then True else
+            if (elem 0 (take y (x:xs))) then isFittable (drop' ((position 0 (x:xs))+1) (x:xs)) (y:ys) else
+                if (head (drop' y (x:xs)) == 1) then isFittable xs (y:ys) else
+                True && isFittable (drop' y (x:xs)) (ys)
+
+
+            -- if (elem 0 (take y (x:xs))) then isFittable (drop' ((position 0 (x:xs))+1) (x:xs)) (y:ys) else
+            --     True && (isFittable (drop' (y+1) (x:xs)) ys)
+        
+
+position :: Eq a => a -> [a] -> Int
+position i xs =
+    case i `elemIndex` xs of
+       Just n  -> n
+       Nothing -> 0
+
 drop' :: Int -> [a] -> [a]
 drop' _ [] = []
 drop' 0 ys = ys
