@@ -98,7 +98,10 @@ main = do
     let size = (map read (words (list!!0))) :: [Int]  -- tablica zawierająca wartości x i y size[0] to x itd..
     let colValues = (map words (slice 1 (size!!0) list))-- tablica [kolumna][clue], np. mamy w kolumnie 2 clue numer 3, czyli bierzemy colValues[1][2] (bo indeksy od 0)
     let rowValues = (map words (slice (size!!0 + 1) (size!!0 + size!!1) list))
-  
+    
+    let rowValuesInts = map convert rowValues
+    let colValuesInts = map convert colValues
+
     let columnTest =  [[1,0],[2,3]]
     let rowTest = [1,1,0,-1,1,1,0,-1,-1]
     let poppedAll = [[]]
@@ -109,25 +112,43 @@ main = do
     let fromColumns = doAllRows colValues (size!!1)
     let rowsfromColumns = collectHeads fromColumns
     let zipped = zipMany fromRows rowsfromColumns
+    let columnFromZipped = collectHeads zipped
+
+    let filledCompletedRows = fillFinished zipped rowValuesInts
+    let filledCompletedColumns = fillFinished columnFromZipped colValuesInts
+    let rowsFromFilledCollumns = collectHeads filledCompletedColumns
+
+    let zippedFilled = zipMany filledCompletedRows rowsFromFilledCollumns
 
 
     ---------------TESTING--------------------------------------------------------
 
+    let test2 = [0,0,0,-1,-1,1,-1,0,0]
     drawPuzzle zipped
+
+    drawPuzzle filledCompletedRows
+
+    drawPuzzle rowsFromFilledCollumns
+
+    drawPuzzle zippedFilled
 
     ---------------PRINTS---------------------------------------------------------
 
     
     print rowValues
     print colValues
-    print ("fromRows", fromRows)
-    print ("fromColumns", fromColumns)
-    print ( "rowsFromColumns", rowsfromColumns)
-    print ("zippedTogether", zipped)
-    print (extraSpace [3,2,1])
-    print (drop' ((position 1 [0,0,0,1,0,1,0])+1) [0,0,0,1,0,1,0])
-    print (take 5 [0,0,0,0,0,0])
-    print (isFittable [1,0] [2])
+    -- print ("fromRows", fromRows)
+    -- print ("fromColumns", fromColumns)
+    -- print ( "rowsFromColumns", rowsfromColumns)
+    -- print ("zippedTogether", zipped)
+    print (take 5 [0,0,0,1,0,0])
+    print ((drop' ((position 1 test2)) test2))
+    print (position 1 [0,0,0,0])
+    print (checkIntegrity [])
+    print (fillOneFinished [-1,-1,0,1,1,-1,0,-1,1,1])
+
+    print ("Is Fittable", isFittable [-1,-1,-1,-1,-1,-1,0,1,-1] [2,1,2])
+    print ("Is complete", isFinished [1,1,-1,-1,0,1,1,-1,1] [2,2,1])
     --let row = solveRow [5, 2, 1] 11
 
     --mapM_ print row 
@@ -142,6 +163,7 @@ main = do
 ---------- Function that computes extra space needed for list of clues would be handfull (take the color into account)
 ---------- Simple spaces algorithm
 --------------
+
 extraSpace :: [Int] -> Int
 extraSpace [x] = x
 extraSpace (x:xs) = x + 1 + extraSpace xs
@@ -157,18 +179,38 @@ isFittable (x:xs) (y:ys) =
         if (length (x:xs) == y && not(elem 0 (x:xs))) then True else
             if (elem 0 (take y (x:xs))) then isFittable (drop' ((position 0 (x:xs))+1) (x:xs)) (y:ys) else
                 if (head (drop' y (x:xs)) == 1) then isFittable xs (y:ys) else
-                True && isFittable (drop' y (x:xs)) (ys)
+                    if (checkIntegrity (x:xs) /= (-1) && checkIntegrity (x:xs) < y) then False else
+                        True && isFittable (drop' y (x:xs)) (ys)
 
+---Checks if all clues of a given row/column are fulfilled    [row/column] -> [clues for that row/column]    
+isFinished :: [Int] -> [Int] -> Bool
+isFinished x [] = if (position 1 x)== (-1) then True else False
+isFinished x (y:ys) = if ((length (takeWhile (==1) (drop' ((position 1 x)) x))) == y) then isFinished (drop' ((position 1 x)+y) x) (ys)
+                            else False
+----- [rows/columns] -> [clues] -> [filledRows/Columns]
+fillFinished :: [[Int]] -> [[Int]] -> [[Int]]
+fillFinished [] [] = []
+fillFinished (x:xs) (y:ys)= if isFinished x y then fillOneFinished x : fillFinished xs ys else x : fillFinished xs ys
 
-            -- if (elem 0 (take y (x:xs))) then isFittable (drop' ((position 0 (x:xs))+1) (x:xs)) (y:ys) else
-            --     True && (isFittable (drop' (y+1) (x:xs)) ys)
-        
+fillOneFinished :: [Int] -> [Int]
+fillOneFinished x = map (\i -> if i == -1 then 0 else i) x
+    
+
+checkIntegrity :: [Int] -> Int
+checkIntegrity x = 
+    if ((position 1 x)/=(-1)) then countSpace (drop' (position 1 x) x) + countSpace (reverse(take (position 1 x) x))
+        else -1
+
+countSpace :: [Int] -> Int
+countSpace [] = 0
+countSpace x = length (takeWhile (\em-> (em==(-1))||(em==1)) x)
+
 
 position :: Eq a => a -> [a] -> Int
 position i xs =
     case i `elemIndex` xs of
        Just n  -> n
-       Nothing -> 0
+       Nothing -> -1
 
 drop' :: Int -> [a] -> [a]
 drop' _ [] = []
